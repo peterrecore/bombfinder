@@ -1,0 +1,168 @@
+<html>
+<head>
+	<title>BombfinderWeb .0001</title>
+</head>
+<body onload="draw();">
+
+Canvas starts after this sentence:
+
+<canvas id="bfcanvas" width="240" height="240" ></canvas>
+Canvas was before this sentence.
+
+
+<script type="text/javascript">
+
+function clickHandler(evt) {
+	console.log("clicked",evt)
+	var targetCell = pixelsToRowCol(board, evt.offsetX, evt.offsetY)
+	console.log("target cell was ",targetCell);
+
+
+}
+
+function pixelsToRowCol(board, x, y){
+	var pixelsPerRow = board.cellHeight + board.padding;
+	var pixelsPerCol = board.cellWidth + board.padding;
+	var targetRow = Math.floor(y / pixelsPerRow);
+	var targetCol = Math.floor(x / pixelsPerCol);
+	return {row:targetRow,col:targetCol};
+
+}
+
+function fillRect(ctx,x,y,h,w,color) {
+	ctx.fillStyle = color;
+	ctx.beginPath();
+	ctx.rect(x,y,h,w);
+	ctx.closePath();
+	ctx.fill();
+}
+
+function draw() {
+	console.log("draw has been called")
+	var canvas = document.getElementById('bfcanvas')
+		,ctx = canvas.getContext("2d")
+		,board = {};
+
+	canvas.onclick = clickHandler;
+
+	board.numRows = 10;
+	board.numCols = 10;
+
+	board.cellHeight = 20;
+	board.cellWidth = 20;
+	board.padding =2;
+
+	board.rows = new Array();
+
+	for (var r = 0;r<board.numRows;r++){
+		board.rows[r] = new Array();
+		for (var c = 0;c<board.numCols;c++){
+			board.rows[r][c] = {row:r, col:c, state:"unclicked"};
+		}
+	};
+	board.rows[3][3].bombs=2;
+	board.rows[3][3].state="revealed";
+
+	board.rows[5][0].bombs=3;
+	board.rows[5][0].state="revealed";
+
+	board.rows[6][8].bombs=1;
+	board.rows[6][8].state="revealed";
+
+
+	var neighbors = genAllValidNeighbors(board.rows[5][4],board.numRows, board.numCols)
+	neighbors.forEach(function(n){
+		board.rows[n.row][n.col].state = "revealed"
+		board.rows[n.row][n.col].bombs = 5
+	});
+
+
+
+	drawBoard(ctx,board);
+
+}
+
+function drawCell(ctx, cell, board) {
+
+	var x = cell.col * (board.cellWidth + board.padding) + board.padding;
+	var y = cell.row * (board.cellHeight + board.padding) + board.padding;
+	var color = "#CCCCCC"
+	var text = null;
+	if (cell.state == "unclicked") {
+		color = "#CCCCCC"
+	};
+
+	if (cell.state.indexOf("revealed") == 0) {
+		color = "#EEEEEE"
+		text = cell.bombs;
+	};
+
+	fillRect(ctx, x,y,board.cellHeight, board.cellWidth,color);
+
+	if (text) {
+		ctx.font = "20px Helvetica";
+		ctx.fillStyle = "#00AAAA";
+		ctx.fillText(text, x+5,y+board.cellHeight-3);
+	}
+
+}
+
+function drawBoard(ctx, board) {
+	//draw background first
+	boardWidth = board.numCols*(board.padding + board.cellWidth) + board.padding;
+	boardHeight = board.numRows*(board.padding + board.cellHeight) + board.padding;
+	fillRect(ctx, 0,0,boardWidth, boardHeight,"#A0A0A0");
+
+
+	// draw current state of all cells
+	for (var r = 0; r < board.rows.length; r++) {
+		var row = board.rows[r]
+		for (var c = 0; c < row.length;c++){
+			var cell = row[c];
+			drawCell(ctx,cell,board);
+		};
+	};
+
+}
+
+function genAllValidNeighbors(cell,numRows, numCols){
+	console.log ("cell is " + cell.row + "," + cell.col)
+	var y = cell.row;
+	var x = cell.col;
+	var offsets = [
+	        {x:-1,y:-1},
+		 	{x:-1,y: 0},
+		 	{x:-1,y: 1},
+		 	{x: 0,y:-1},
+		 	{x: 0,y: 1},
+		 	{x: 1,y: 1},
+		 	{x: 1,y: 0},
+		 	{x: 1,y:-1}
+		 	];
+	var neighbors = [];
+
+	function applyOffset(offset){ return {row:offset.y + y, col:offset.x+x}};
+	function isValidCell(c){return (c.col > 0 && c.row > 0 && c.col < numCols && c.row < numRows)};
+
+	var neighbors = offsets.map(applyOffset).filter(isValidCell);
+	console.log(neighbors);
+
+    // foreach (offset in offsets) {
+    // 	var neighbor = {};
+    // 	console.log("offset is",offsets[offset])
+    // 	neighbor.col = offset.x + x;
+    // 	neighbor.row = offset.y + y;
+
+    // 	console.log("neighbor is ", neighbor)
+    // 	if  {
+    // 		console.log("pushing a neighbor now:" + neighbor);
+    // 		neighbors.push(neighbor);
+    // 	}
+    // }
+    return neighbors;
+}
+
+
+</script>
+</body>
+</html>

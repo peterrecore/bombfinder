@@ -2,7 +2,7 @@
 <head>
 	<title>BombfinderWeb .0001</title>
 </head>
-<body onload="draw();">
+<body onload="onload();">
 
 Canvas starts after this sentence:
 
@@ -31,7 +31,7 @@ function fillRect(ctx,x,y,h,w,color) {
 	ctx.fill();
 }
 
-function draw() {
+function onload() {
 	console.log("draw has been called")
 	var canvas = document.getElementById('bfcanvas')
 		,ctx = canvas.getContext("2d")
@@ -42,7 +42,7 @@ function draw() {
 		var targetCell = pixelsToRowCol(board, evt.offsetX, evt.offsetY)
 		console.log("target cell was ",targetCell);
 	}
-		
+
 	canvas.onclick = clickHandler;
 
 	board.numRows = 10;
@@ -147,18 +147,6 @@ function genAllValidNeighbors(cell,numRows, numCols){
 	var neighbors = offsets.map(applyOffset).filter(isValidCell);
 	console.log(neighbors);
 
-    // foreach (offset in offsets) {
-    // 	var neighbor = {};
-    // 	console.log("offset is",offsets[offset])
-    // 	neighbor.col = offset.x + x;
-    // 	neighbor.row = offset.y + y;
-
-    // 	console.log("neighbor is ", neighbor)
-    // 	if  {
-    // 		console.log("pushing a neighbor now:" + neighbor);
-    // 		neighbors.push(neighbor);
-    // 	}
-    // }
     return neighbors;
 }
 

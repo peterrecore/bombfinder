@@ -12,13 +12,7 @@ Canvas was before this sentence.
 
 <script type="text/javascript">
 
-function clickHandler(evt) {
-	console.log("clicked",evt)
-	var targetCell = pixelsToRowCol(board, evt.offsetX, evt.offsetY)
-	console.log("target cell was ",targetCell);
 
-
-}
 
 function pixelsToRowCol(board, x, y){
 	var pixelsPerRow = board.cellHeight + board.padding;
@@ -43,6 +37,12 @@ function draw() {
 		,ctx = canvas.getContext("2d")
 		,board = {};
 
+    function clickHandler(evt) {
+		console.log("clicked",evt)
+		var targetCell = pixelsToRowCol(board, evt.offsetX, evt.offsetY)
+		console.log("target cell was ",targetCell);
+	}
+		
 	canvas.onclick = clickHandler;
 
 	board.numRows = 10;

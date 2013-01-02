@@ -97,11 +97,6 @@ function onload() {
 	var bombCell;
 	for (var x = 0 ; x < numBombs;x++){
 		bombCell = pullItemAtRandom(bag);
-
-		console.log("bombcell.xxx is ",bombCell.xxx);
-		console.log("bombcell is ",bombCell);
-
-
 		placeBomb(board, bombCell.row, bombCell.col);
 	}
 
@@ -200,9 +195,7 @@ function placeBomb(board, row, col) {
 
 function pullItemAtRandom(a){
 		 var chosenIndex = Math.floor(Math.random() * a.length);
-		 var chosen = a[chosenIndex];
-		 a.splice(chosenIndex,1);
-		 console.log("chosen, xxx ",chosen,chosen.xxx);
+		 var chosen = a.splice(chosenIndex,1)[0];
 		 return chosen;
 }
 

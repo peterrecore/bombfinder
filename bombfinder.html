@@ -85,10 +85,7 @@ function onload() {
 		board.rows[r] = new Array();
 		for (var c = 0;c < board.numCols;c++){
 			board.rows[r][c] = {row:r, col:c, state:"unclicked",bombs:0};
-
-			mycell = {row:r, col:c, xxx:5}; // fill up a bag with cells so we can pull some out randomly later.
-			
-			bag[r*board.numCols + c] = mycell;
+			bag[r*board.numCols + c] =  {row:r, col:c}; // fill up a bag with cells so we can pull some out randomly later
 		}
 	};
 

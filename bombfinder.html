@@ -37,7 +37,8 @@ function onload() {
 	console.log("draw has been called")
 	var canvas = document.getElementById('bfcanvas')
 		,ctx = canvas.getContext("2d")
-		,board = {};
+		,board = {}
+		,bag = new Array();
 
     function clickHandler(evt) {
 		console.log("clicked",evt)
@@ -76,27 +77,33 @@ function onload() {
 
 	board.cellHeight = 20;
 	board.cellWidth = 20;
-	board.padding =2;
+	board.padding = 2;
 
 	board.rows = new Array();
-
+	var mycell;
 	for (var r = 0;r < board.numRows;r++){
 		board.rows[r] = new Array();
 		for (var c = 0;c < board.numCols;c++){
 			board.rows[r][c] = {row:r, col:c, state:"unclicked",bombs:0};
-			bag[r*board.numCols + c] = {row:r,col:c}; // fill up a bag with cells so we can pull some out randomly later.
+
+			mycell = {row:r, col:c, xxx:5}; // fill up a bag with cells so we can pull some out randomly later.
+			
+			bag[r*board.numCols + c] = mycell;
 		}
 	};
 
-	placeBomb(board,3,3);
-	placeBomb(board,3,4);
-	placeBomb(board,3,5);
 
-	placeBomb(board,9,5);
-	placeBomb(board,5,5);
+	var numBombs = 7;
+	var bombCell;
+	for (var x = 0 ; x < numBombs;x++){
+		bombCell = pullItemAtRandom(bag);
 
-	placeBomb(board,2,3);
-	placeBomb(board,2,5);
+		console.log("bombcell.xxx is ",bombCell.xxx);
+		console.log("bombcell is ",bombCell);
+
+
+		placeBomb(board, bombCell.row, bombCell.col);
+	}
 
 	drawBoard(ctx,board);
 
@@ -119,8 +126,6 @@ function drawCell(ctx, cell, board) {
 			text = "X";// being a bomb overrides having a number.
 		}
 	};
-
-	
 
 
 	fillRect(ctx, x,y,board.cellHeight, board.cellWidth,color);
@@ -186,6 +191,7 @@ function genAllValidNeighbors(board, cell){
 }
 
 function placeBomb(board, row, col) {
+	console.log("row, col is",row,col);
 	var cell = board.rows[row][col];
 	cell.isBomb = true;
 	var neighbors = genAllValidNeighbors(board,cell);
@@ -193,8 +199,11 @@ function placeBomb(board, row, col) {
 }
 
 function pullItemAtRandom(a){
-		 var chosen = Math.floor(Math.random() * a.length);
-		 return a.splice(chosen,1);
+		 var chosenIndex = Math.floor(Math.random() * a.length);
+		 var chosen = a[chosenIndex];
+		 a.splice(chosenIndex,1);
+		 console.log("chosen, xxx ",chosen,chosen.xxx);
+		 return chosen;
 }
 
 

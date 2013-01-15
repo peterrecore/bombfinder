@@ -52,6 +52,26 @@ function onload() {
 		drawBoard(ctx, board)
 	}
 
+	function contextMenuHandler(evt) {
+		console.log("right clicked",evt)
+		var target = pixelsToRowCol(board, evt.offsetX, evt.offsetY)
+        var targetCell = board.rows[target.row][target.col];
+		console.log("right clicked on cell",targetCell)
+		if (targetCell.state === "revealed"){
+			// do nothing for now, maybe allow powerup later
+			return;
+		}
+		if (targetCell.state === "flagged") {
+			targetCell.state = "unclicked";
+			return;
+		}
+		if (targetCell.state === "unclicked"){
+			targetCell.state = "flagged";
+		}
+		drawBoard(ctx, board);
+		return false;
+	}
+
 	function revealCell(board, targetCell) {
 		tc = board.rows[targetCell.row][targetCell.col]
 		if (tc.state === "revealed") {
@@ -62,6 +82,9 @@ function onload() {
 
 		if (tc.isBomb){
 			board.exploded = true;
+			var allCells = [].concat.apply([], board.rows);
+			var markBombsRevealed = function(cell) {if (cell.isBomb) {cell.state = "revealed";}};
+			allCells.map(markBombsRevealed);
 		}
 		if (tc.bombs === 0){
 			var isNotRevealed = function (cell){return (cell.state !== "revealed")};
@@ -71,6 +94,7 @@ function onload() {
 	}
 
 	canvas.onclick = clickHandler;
+	canvas.oncontextmenu = contextMenuHandler;
 
 	board.numRows = 10;
 	board.numCols = 10;
@@ -90,7 +114,7 @@ function onload() {
 	};
 
 
-	var numBombs = 7;
+	var numBombs = 17;
 	var bombCell;
 	for (var x = 0 ; x < numBombs;x++){
 		bombCell = pullItemAtRandom(bag);
@@ -107,26 +131,40 @@ function drawCell(ctx, cell, board) {
 	var y = cell.row * (board.cellHeight + board.padding) + board.padding;
 	var color = "#CCCCCC"
 	var text = null;
+	var img = null;
+
 	if (cell.state === "unclicked") {
 		color = "#CCCCCC"
 	};
+
+	if (cell.state === "flagged") {
+		text = "F";
+	}
 
 	if (cell.state === "revealed") {
 		color = "#EEEEEE"
 		text = cell.bombs;
 		if (cell.isBomb){
 			text = "X";// being a bomb overrides having a number.
+			img = new Image();
+            img.src = "bomb.png";
 		}
 	};
 
 
 	fillRect(ctx, x,y,board.cellHeight, board.cellWidth,color);
 
-	if (text) {
+
+	// eventually we'll have nice images for everything, instead of text.  In the meantime, 
+	// text will be overwritten by images, if both are specified for a cell.
+	if (img) {
+		ctx.drawImage(img,x,y,board.cellWidth,board.cellHeight);
+	} else if (text) {
 		ctx.font = "20px Helvetica";
 		ctx.fillStyle = "#00AAAA";
 		ctx.fillText(text, x+5,y+board.cellHeight-3);
 	}
+
 
 }
 
@@ -183,7 +221,7 @@ function genAllValidNeighbors(board, cell){
 }
 
 function placeBomb(board, row, col) {
-	console.log("row, col is",row,col);
+	//console.log("placing bomb at row, col: ",row,col);
 	var cell = board.rows[row][col];
 	cell.isBomb = true;
 	var neighbors = genAllValidNeighbors(board,cell);

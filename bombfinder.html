@@ -8,7 +8,7 @@ Canvas starts after this sentence:
 
 <canvas id="bfcanvas" width="240" height="240" ></canvas>
 Canvas was before this sentence.
-
+<span id="minionCount"> Minions: ??</span>
 
 <script type="text/javascript">
 /* TODO: ensure that x and y are always used for pixels,and row/column are used for cells
@@ -35,17 +35,51 @@ function fillRect(ctx,x,y,h,w,color) {
 
 function onload() {
 	console.log("draw has been called")
-	var canvas = document.getElementById('bfcanvas')
-		,ctx = canvas.getContext("2d")
-		,board = {}
-		,bag = new Array();
+	var canvas = document.getElementById('bfcanvas');
+	var ctx = canvas.getContext("2d");
+
+	var	board;
+	var	bag;
+
+	function resetGame() {
+		var numBombs = 17;
+
+        board = {};
+        bag = new Array();
+        board.rows = new Array();
+
+
+		board.numRows = 10;
+		board.numCols = 10;
+
+		board.cellHeight = 20;
+		board.cellWidth = 20;
+		board.padding = 2;
+		board.minions = 1;
+
+
+        var mycell;
+		for (var r = 0;r < board.numRows;r++){
+			board.rows[r] = new Array();
+			for (var c = 0;c < board.numCols;c++){
+				board.rows[r][c] = {row:r, col:c, state:"unclicked",bombs:0};
+				bag[r*board.numCols + c] =  {row:r, col:c}; // fill up a bag with cells so we can pull some out randomly later
+			}
+		};
+
+		var bombCell;
+		for (var x = 0 ; x < numBombs;x++){
+			bombCell = pullItemAtRandom(bag);
+			placeBomb(board, bombCell.row, bombCell.col);
+		}
+
+
+	}
 
     function clickHandler(evt) {
 		console.log("clicked",evt)
 		var targetCell = pixelsToRowCol(board, evt.offsetX, evt.offsetY)
 		console.log("target cell was ",targetCell);
-
-		
 
 		revealCell(board, targetCell);
 
@@ -59,11 +93,11 @@ function onload() {
 		console.log("right clicked on cell",targetCell)
 		if (targetCell.state === "revealed"){
 			// do nothing for now, maybe allow powerup later
-			return;
+			return false;
 		}
 		if (targetCell.state === "flagged") {
 			targetCell.state = "unclicked";
-			return;
+			return false;
 		}
 		if (targetCell.state === "unclicked"){
 			targetCell.state = "flagged";
@@ -74,52 +108,40 @@ function onload() {
 
 	function revealCell(board, targetCell) {
 		tc = board.rows[targetCell.row][targetCell.col]
-		if (tc.state === "revealed") {
+		if (tc.state === "revealed" || tc.state === "flagged") {
 			return;
 		}
 
 		tc.state = "revealed";
 
-		if (tc.isBomb){
+		if (tc.isBomb && board.minions < 1){
 			board.exploded = true;
 			var allCells = [].concat.apply([], board.rows);
 			var markBombsRevealed = function(cell) {if (cell.isBomb) {cell.state = "revealed";}};
 			allCells.map(markBombsRevealed);
+			return;
 		}
+
+		if (tc.isBomb && board.minions > 0) {
+			board.minions = board.minions - 1;
+			tc.state = "minion";
+			return;
+		}
+
 		if (tc.bombs === 0){
 			var isNotRevealed = function (cell){return (cell.state !== "revealed")};
 			var reveal = function (cell) { revealCell(board,cell)};
 		    genAllValidNeighbors(board,targetCell).filter(isNotRevealed).map(reveal);
+		    return;
 		}
 	}
 
 	canvas.onclick = clickHandler;
 	canvas.oncontextmenu = contextMenuHandler;
 
-	board.numRows = 10;
-	board.numCols = 10;
-
-	board.cellHeight = 20;
-	board.cellWidth = 20;
-	board.padding = 2;
-
-	board.rows = new Array();
-	var mycell;
-	for (var r = 0;r < board.numRows;r++){
-		board.rows[r] = new Array();
-		for (var c = 0;c < board.numCols;c++){
-			board.rows[r][c] = {row:r, col:c, state:"unclicked",bombs:0};
-			bag[r*board.numCols + c] =  {row:r, col:c}; // fill up a bag with cells so we can pull some out randomly later
-		}
-	};
+	resetGame();
 
 
-	var numBombs = 17;
-	var bombCell;
-	for (var x = 0 ; x < numBombs;x++){
-		bombCell = pullItemAtRandom(bag);
-		placeBomb(board, bombCell.row, bombCell.col);
-	}
 
 	drawBoard(ctx,board);
 
@@ -136,6 +158,10 @@ function drawCell(ctx, cell, board) {
 	if (cell.state === "unclicked") {
 		color = "#CCCCCC"
 	};
+
+	if (cell.state === "minion"){
+		text = "M";
+	}
 
 	if (cell.state === "flagged") {
 		text = "F";
